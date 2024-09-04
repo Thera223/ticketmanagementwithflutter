@@ -1,0 +1,37 @@
+name: gestionticket
+description: A new Flutter project.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.1 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  syncfusion_flutter_charts: ^20.2.0
+
+  # Dépendances Firebase
+  firebase_core: ^2.24.2 # Mettez à jour avec la version la plus récente disponible
+  firebase_auth: ^4.16.0 # Mettez à jour avec la version la plus récente disponible
+  cloud_firestore: ^4.8.0
+
+  # Dépendances supplémentaires
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.2
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Ajout des assets (par exemple, images)
+  assets:
+    - assets/images/
