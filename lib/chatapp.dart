@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gestionticket/apprenant_home_page.dart';
+import 'package:gestionticket/main.dart';
+import 'package:provider/provider.dart';
 
 class ChatGroupsPageApprenant extends StatefulWidget {
   @override
@@ -12,17 +14,20 @@ class _ChatGroupsPageApprenantState extends State<ChatGroupsPageApprenant> {
   final String apprenantId = FirebaseAuth.instance.currentUser!.uid;
   int _currentIndex = 1; // Position initiale de l'onglet
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index, String userRole) {
     setState(() {
       _currentIndex = index;
     });
 
+    // Redirige vers la page appropriée en fonction du rôle de l'utilisateur
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/apprenant_home');
+        Navigator.pushNamed(context,
+            userRole == 'Apprenant' ? '/apprenant_home' : '/formateur_home');
         break;
       case 1:
-        Navigator.pushNamed(context, '/chatapre');
+        Navigator.pushNamed(
+            context, userRole == 'Apprenant' ? '/chatapre' : '/chatform');
         break;
       case 2:
         Navigator.pushNamed(context, '/notifications');
@@ -32,9 +37,9 @@ class _ChatGroupsPageApprenantState extends State<ChatGroupsPageApprenant> {
         break;
     }
   }
-
   @override
   Widget build(BuildContext context) {
+        final userRole = context.watch<UserRoleProvider>().role;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -98,8 +103,9 @@ class _ChatGroupsPageApprenantState extends State<ChatGroupsPageApprenant> {
       ),
        bottomNavigationBar: CustomBottomNavigationBar(
           currentIndex: _currentIndex,
-          onTap: _onItemTapped,
+          onTap: (index) => _onItemTapped(index, userRole),
         )
     );
   }
+  
 }

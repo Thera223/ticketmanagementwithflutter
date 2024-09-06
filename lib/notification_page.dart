@@ -13,17 +13,20 @@ class _NotificationPageState extends State<NotificationPage> {
   int _currentIndex = 2; // Position initiale de l'onglet
 
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index, String userRole) {
     setState(() {
       _currentIndex = index;
     });
 
+    // Redirige vers la page appropriée en fonction du rôle de l'utilisateur
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/apprenant_home');
+        Navigator.pushNamed(context,
+            userRole == 'Apprenant' ? '/apprenant_home' : '/formateur_home');
         break;
       case 1:
-        Navigator.pushNamed(context, '/chatapre');
+        Navigator.pushNamed(
+            context, userRole == 'Apprenant' ? '/chatapre' : '/chatform');
         break;
       case 2:
         Navigator.pushNamed(context, '/notifications');
@@ -151,7 +154,7 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
           bottomNavigationBar: CustomBottomNavigationBar(
             currentIndex: _currentIndex,
-            onTap: _onItemTapped,
+            onTap: (index) => _onItemTapped(index, userRole),
           ),
         );
       },

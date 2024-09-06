@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gestionticket/apprenant_home_page.dart';
+import 'package:gestionticket/main.dart';
+import 'package:provider/provider.dart';
 
 
 class FormateurHomePage extends StatefulWidget {
@@ -19,17 +21,20 @@ class _FormateurHomePageState extends State<FormateurHomePage> {
   final TextEditingController _searchController = TextEditingController();
    int _currentIndex = 0; // Position initiale de l'onglet
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index, String userRole) {
     setState(() {
       _currentIndex = index;
     });
 
+    // Redirige vers la page appropriée en fonction du rôle de l'utilisateur
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/apprenant_home');
+        Navigator.pushNamed(context,
+            userRole == 'Apprenant' ? '/apprenant_home' : '/formateur_home');
         break;
       case 1:
-        Navigator.pushNamed(context, '/chatapre');
+        Navigator.pushNamed(
+            context, userRole == 'Apprenant' ? '/chatapre' : '/chatform');
         break;
       case 2:
         Navigator.pushNamed(context, '/notifications');
@@ -41,6 +46,7 @@ class _FormateurHomePageState extends State<FormateurHomePage> {
   }
 
     Widget build(BuildContext context) {
+    final userRole = context.watch<UserRoleProvider>().role;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Accueil Formateur',
@@ -70,9 +76,9 @@ class _FormateurHomePageState extends State<FormateurHomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: _onItemTapped,)
+       bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => _onItemTapped(index, userRole),)
     );
   }
 
@@ -614,7 +620,7 @@ Widget _buildResponseList() {
                       Row(
                         children: [
                           Icon(Icons.description,
-                             color: Colors.black54, size: 18),
+                            color: Colors.black54, size: 18),
                           const SizedBox(width: 6),
                           Text(
                             'Description:',
@@ -769,96 +775,185 @@ void _editResponse(BuildContext context, DocumentSnapshot response) {
   
 
 }
+
+
 class ResponseDetailPage extends StatelessWidget {
   final Map<String, dynamic> responseData;
 
   const ResponseDetailPage({Key? key, required this.responseData})
       : super(key: key);
 
-  Future<void> _requestToContactFormateur(BuildContext context) async {
-    String apprenantId = FirebaseAuth.instance.currentUser!.uid;
-    String formateurId = responseData['formateurId'];
-    String ticketId = responseData['ticketId'];
-
-    // Envoyer la demande de contact au formateur, sans `groupId`
-    await FirebaseFirestore.instance.collection('invitations').add({
-      'apprenantId': apprenantId,
-      'formateurId': formateurId,
-      'ticketId': ticketId,
-      'status': 'pending', // Statut de la demande
-      'timestamp': Timestamp.now(),
-    });
-
-   
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détails de la Réponse'),
+        backgroundColor: const Color.fromARGB(255, 20, 67, 168),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Titre: ${responseData['titre']}',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text('Description: ${responseData['description']}',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            Text('Catégorie: ${responseData['categorie']}',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            Text(
-                'Date: ${(responseData['Date'] as Timestamp?)?.toDate().toString() ?? 'Date non définie'}',
-                style: const TextStyle(fontSize: 16)),
-
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow(
+                    icon: Icons.title,
+                    label: 'Titre',
+                    value: responseData['titre'] ?? 'Titre non défini',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.description,
+                    label: 'Description',
+                    value: responseData['description'] ?? 'Description non définie',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.category,
+                    label: 'Catégorie',
+                    value: responseData['categorie'] ?? 'Catégorie non définie',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.calendar_today,
+                    label: 'Date',
+                    value: (responseData['Date'] as Timestamp?)?.toDate().toString() ?? 'Date non définie',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildDetailRow(
+      {required IconData icon, required String label, required String value}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: const Color.fromARGB(255, 20, 67, 168)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
+
+
 class TicketDetailPage extends StatelessWidget {
   final Map<String, dynamic> ticketData;
 
-  const TicketDetailPage({Key? key, required this.ticketData})
-      : super(key: key);
+  const TicketDetailPage({Key? key, required this.ticketData}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détails du Ticket'),
+        backgroundColor: const Color.fromARGB(255, 20, 67, 168),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Titre: ${ticketData['Titre']}',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text('Description: ${ticketData['Description']}',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            Text('Catégorie: ${ticketData['categorie']}',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            Text('Statut: ${ticketData['Etat']}',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            Text(
-                'Date: ${(ticketData['Date'] as Timestamp?)?.toDate().toString() ?? 'Date non définie'}',
-                style: const TextStyle(fontSize: 16)),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow(
+                    icon: Icons.title,
+                    label: 'Titre',
+                    value: ticketData['Titre'] ?? 'Titre non défini',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.description,
+                    label: 'Description',
+                    value: ticketData['Description'] ?? 'Description non définie',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.category,
+                    label: 'Catégorie',
+                    value: ticketData['categorie'] ?? 'Catégorie non définie',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.info_outline,
+                    label: 'Statut',
+                    value: ticketData['Etat'] ?? 'Statut non défini',
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    icon: Icons.calendar_today,
+                    label: 'Date',
+                    value: (ticketData['Date'] as Timestamp?)?.toDate().toString() ?? 'Date non définie',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildDetailRow({required IconData icon, required String label, required String value}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: const Color.fromARGB(255, 20, 67, 168)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
+

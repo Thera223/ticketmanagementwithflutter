@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gestionticket/apprenant_home_page.dart';
+import 'package:gestionticket/main.dart';
+import 'package:provider/provider.dart';
 
 
 
@@ -13,33 +15,15 @@ class ProfilePage extends StatefulWidget {
 
 
 
-class _ProfilePageState extends State<ProfilePage>  {
-  
+
+class _ProfilePageState extends State<ProfilePage> {
   int _currentIndex = 3; // Position initiale de l'onglet
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushNamed(context, '/apprenant_home');
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/chatapre');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/notifications');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    // Accédez au rôle de l'utilisateur à partir de UserRoleProvider
+    final userRole = context.watch<UserRoleProvider>().role;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
@@ -95,12 +79,34 @@ class _ProfilePageState extends State<ProfilePage>  {
           ],
         ),
       ),
-                bottomNavigationBar: CustomBottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: _onItemTapped,) // Ajouter la barre de navigation
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => _onItemTapped(index, userRole),
+      ),
     );
   }
 
-  // Fonction pour créer la barre de navigation
-//   
+  void _onItemTapped(int index, String userRole) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // Redirige vers la page appropriée en fonction du rôle de l'utilisateur
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context,
+            userRole == 'Apprenant' ? '/apprenant_home' : '/formateur_home');
+        break;
+      case 1:
+        Navigator.pushNamed(
+            context, userRole == 'Apprenant' ? '/chatapre' : '/chatform');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/notifications');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
 }

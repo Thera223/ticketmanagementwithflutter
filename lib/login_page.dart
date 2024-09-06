@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:gestionticket/main.dart';
 
 class LoginPagem extends StatefulWidget {
   const LoginPagem({super.key});
@@ -14,8 +16,6 @@ class _LoginPagemState extends State<LoginPagem> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorMessage;
-  String? _userId;
-  String? _userRole;
   bool _isPasswordVisible = false;
 
   Future<void> _signIn() async {
@@ -37,22 +37,14 @@ class _LoginPagemState extends State<LoginPagem> {
             .get();
 
         if (userDoc.exists) {
-          _userRole = userDoc['role'];
-          _userId = user.uid;
+          String userRole = userDoc['role'];
+          context.read<UserRoleProvider>().setRole(userRole);
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Bienvenue $_userRole ($_userId)')),
+            SnackBar(content: Text('Bienvenue $userRole')),
           );
 
-          if (_userRole == 'Apprenant') {
-            Navigator.pushReplacementNamed(context, '/apprenant_home');
-          } else if (_userRole == 'Formateur') {
-            Navigator.pushReplacementNamed(context, '/formateur_home');
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Rôle inconnu')),
-            );
-          }
+          _navigateToHome(userRole);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Utilisateur non trouvé')),
@@ -63,6 +55,18 @@ class _LoginPagemState extends State<LoginPagem> {
       setState(() {
         _errorMessage = e.message;
       });
+    }
+  }
+
+  void _navigateToHome(String role) {
+    if (role == 'Apprenant') {
+      Navigator.pushReplacementNamed(context, '/apprenant_home');
+    } else if (role == 'Formateur') {
+      Navigator.pushReplacementNamed(context, '/formateur_home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rôle inconnu')),
+      );
     }
   }
 
