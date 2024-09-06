@@ -17,38 +17,95 @@ class _ResponseFormState extends State<ResponseForm> {
   // Méthode pour obtenir l'ID du formateur connecté
   String get _formateurId {
     final User? user = FirebaseAuth.instance.currentUser;
-    return user != null
-        ? user.uid
-        : ''; // Retourne l'ID de l'utilisateur s'il est connecté, sinon une chaîne vide
+    return user != null ? user.uid : '';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Répondre au Ticket')),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text('Répondre au Ticket'),
+        backgroundColor: const Color.fromARGB(255, 20, 67, 168),
+        elevation: 1,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: TextEditingController(
-                  text: widget.ticket['Titre'] ?? 'Titre non défini'),
-              decoration: const InputDecoration(labelText: 'Titre'),
-              enabled:
-                  false, // Désactiver le champ pour ne pas permettre l'édition
+            Text(
+              'Titre du Ticket',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Text(
+                widget.ticket['Titre'] ?? 'Titre non défini',
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _descriptionController,
-              decoration:
-                  const InputDecoration(labelText: 'Description de la réponse'),
+            Text(
+              'Description de la Réponse',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                _submitResponse(widget.ticket.id);
-              },
-              child: const Text('Soumettre'),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _descriptionController,
+                maxLines: 8, // Augmente la taille de la zone de texte
+                decoration: const InputDecoration.collapsed(
+                    hintText: 'Entrez votre réponse ici...'),
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            const SizedBox(height: 30),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  _submitResponse(widget.ticket.id);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 20, 67, 168),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  'Soumettre',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
             ),
           ],
         ),
@@ -60,15 +117,13 @@ class _ResponseFormState extends State<ResponseForm> {
     try {
       await FirebaseFirestore.instance.collection('reponseticket').add({
         'ticketId': ticketId,
-        'formateurId': _formateurId, // Utilisez l'ID du formateur connecté
+        'formateurId': _formateurId,
         'Date': Timestamp.now(),
         'description': _descriptionController.text.trim(),
-        'titre': widget.ticket['Titre'], // Titre défini par l'apprenant
-        'categorie':
-            widget.ticket['categorie'], // Catégorie définie par l'apprenant
+        'titre': widget.ticket['Titre'],
+        'categorie': widget.ticket['categorie'],
       });
 
-      // Mettre à jour le statut du ticket
       await FirebaseFirestore.instance
           .collection('tickets')
           .doc(ticketId)
@@ -78,7 +133,7 @@ class _ResponseFormState extends State<ResponseForm> {
         const SnackBar(content: Text('Réponse soumise avec succès !')),
       );
 
-      Navigator.pop(context); // Retourner à la page précédente
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

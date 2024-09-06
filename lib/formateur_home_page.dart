@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gestionticket/apprenant_home_page.dart';
 
+
 class FormateurHomePage extends StatefulWidget {
   const FormateurHomePage({Key? key}) : super(key: key);
 
@@ -16,14 +17,35 @@ class _FormateurHomePageState extends State<FormateurHomePage> {
   String _searchQuery = '';
   String? _selectedCategory;
   final TextEditingController _searchController = TextEditingController();
+   int _currentIndex = 0; // Position initiale de l'onglet
 
-  @override
-  Widget build(BuildContext context) {
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/apprenant_home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/chatapre');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/notifications');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
+
+    Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Accueil Formateur',
             style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 20, 67, 168),
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
@@ -48,118 +70,169 @@ class _FormateurHomePageState extends State<FormateurHomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: CustomBottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: _onItemTapped,)
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) {
-          setState(() {
-            _searchQuery = value.toLowerCase();
-          });
-        },
-        decoration: InputDecoration(
-          hintText: 'Rechercher',
-          prefixIcon: const Icon(Icons.search, color: Colors.black),
-          filled: true,
-          fillColor: Colors.grey.shade200,
-          border: OutlineInputBorder(
-            borderSide:
-                const BorderSide(color: Color.fromARGB(255, 180, 179, 179)),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide:
-                const BorderSide(color: Color.fromARGB(255, 180, 179, 179)),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-                color: Color.fromARGB(255, 20, 67, 168), width: 2),
-            borderRadius: BorderRadius.circular(10),
-          ),
+Widget _buildSearchBar() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+    child: TextField(
+      controller: _searchController,
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value.toLowerCase();
+        });
+      },
+      decoration: InputDecoration(
+        hintText: 'Rechercher',
+        prefixIcon: const Icon(Icons.search, color: Colors.black),
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        border: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color.fromARGB(255, 180, 179, 179)),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color.fromARGB(255, 180, 179, 179)),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color.fromARGB(255, 20, 67, 168), width: 2),
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildCategoryFilter() {
-    const categories = ['Technique', 'Pédagogique', 'Autres'];
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: categories
-              .map((category) => _buildCategoryButton(category))
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButton(String category) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            _selectedCategory = _selectedCategory == category ? null : category;
-          });
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _selectedCategory == category
-              ? const Color.fromARGB(255, 20, 67, 168)
-              : Colors.grey.shade600,
-        ),
-        child: Text(category, style: const TextStyle(color: Colors.white)),
-      ),
-    );
-  }
-
-  Widget _buildToggleButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+Widget _buildCategoryFilter() {
+  const categories = ['Technique', 'Pédagogique', 'Autres'];
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        children: categories.map((category) => _buildCategoryButton(category)).toList(),
+      ),
+    ),
+  );
+}
+
+Widget _buildCategoryButton(String category) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+    child: ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _selectedCategory = _selectedCategory == category ? null : category;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _selectedCategory == category
+            ? const Color.fromARGB(255, 20, 67, 168)
+            : Colors.grey.shade600,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Uniformiser avec les autres boutons
+        ),
+      ),
+      child: Text(category, style: const TextStyle(color: Colors.white)),
+    ),
+  );
+}
+
+Widget _buildToggleButtons() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildAnimatedToggleButton(
+          isSelected: showTickets,
+          label: 'Tickets',
+          icon: Icons.assignment,
+          onTap: () {
+            setState(() {
+              showTickets = true;
+            });
+          },
+        ),
+        const SizedBox(width: 10),
+        _buildAnimatedToggleButton(
+          isSelected: !showTickets,
+          label: 'Réponses',
+          icon: Icons.message,
+          onTap: () {
+            setState(() {
+              showTickets = false;
+            });
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildAnimatedToggleButton({
+  required bool isSelected,
+  required String label,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: isSelected
+            ? const LinearGradient(
+                colors: [Color.fromARGB(255, 20, 67, 168), Colors.blueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : const LinearGradient(
+                colors: [Colors.grey, Colors.grey],
+              ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  offset: const Offset(0, 4),
+                  blurRadius: 8,
+                ),
+              ]
+            : [],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                showTickets = true;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: showTickets
-                  ? const Color.fromARGB(255, 20, 67, 168)
-                  : Colors.grey,
-            ),
-            child: const Text('Tickets', style: TextStyle(color: Colors.white)),
+          Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.black54,
           ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                showTickets = false;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: !showTickets
-                  ? const Color.fromARGB(255, 20, 67, 168)
-                  : Colors.grey,
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black54,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 16,
             ),
-            child:
-                const Text('Réponses', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+
 
 Widget _buildTicketList() {
     return StreamBuilder<QuerySnapshot>(
@@ -189,7 +262,8 @@ Widget _buildTicketList() {
         return ListView.builder(
           itemCount: tickets.length,
           itemBuilder: (context, index) {
-            var ticket = tickets[index].data() as Map<String, dynamic>;
+            DocumentSnapshot ticketDoc = tickets[index];
+            var ticket = ticketDoc.data() as Map<String, dynamic>;
 
             String titre = ticket['Titre'] ?? 'Titre non défini';
             String description =
@@ -199,7 +273,6 @@ Widget _buildTicketList() {
                 ticket['ApprenantId'] ?? 'ID Apprenant non défini';
             String etat = ticket['Etat'] ?? 'Statut inconnu';
 
-            // Utiliser FutureBuilder pour récupérer le nom de l'utilisateur
             return FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection('users')
@@ -217,39 +290,13 @@ Widget _buildTicketList() {
                     : 'Utilisateur inconnu';
 
                 return Card(
-                  margin:
+                 margin:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                  elevation: 2,
+                  elevation: 3,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  child: ListTile(
-                    title: Text(titre,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Description: $description'),
-                        Text('Catégorie: $categorie'),
-                        Text('Apprenant: $apprenantNom'),
-                        Text('Statut: $etat'),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.send,
-                          color: Color.fromARGB(255, 20, 67, 168)),
-                      onPressed: () {
-                        if (etat.toLowerCase() == 'résolu') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Ce ticket a déjà été résolu.'),
-                            ),
-                          );
-                        } else {
-                          _startResponse(context, tickets[index]);
-                        }
-                      },
-                    ),
+                  child: InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -259,6 +306,133 @@ Widget _buildTicketList() {
                         ),
                       );
                     },
+                    borderRadius: BorderRadius.circular(15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.description,
+                                        color: Color.fromARGB(255, 20, 67, 168)),
+                                       const SizedBox(width: 8),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      titre,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        color: Color.fromARGB(255, 20, 67, 168),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: etat.toLowerCase() == 'résolu'
+                                      ? Colors.green[100]
+                                      : etat.toLowerCase() == 'en cours'
+                                          ? Colors.yellow[100]
+                                          : Colors.red[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  etat,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: etat.toLowerCase() == 'résolu'
+                                        ? Colors.green[800]
+                                        : etat.toLowerCase() == 'en cours'
+                                            ? Colors.orange[800]
+                                            : Colors.red[800],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.description,
+                                 color: Colors.black54, size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Description:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 22.0),
+                            child: Text(
+                              description,
+                              style: const TextStyle(
+                                  color: Colors.black87, fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.category,
+                                  color: Colors.black54, size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Catégorie: $categorie',
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 14),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.person,
+                                  color: Colors.black54, size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Apprenant: $apprenantNom',
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 14),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.send,
+                                color: Color.fromARGB(255, 20, 67, 168),
+                              ),
+                              onPressed: () {
+                                if (etat.toLowerCase() == 'résolu') {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Ce ticket a déjà été résolu.'),
+                                    ),
+                                  );
+                                } else {
+                                  _setTicketInProgress(ticketDoc, context);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
@@ -270,23 +444,49 @@ Widget _buildTicketList() {
   }
 
 
-// Méthode pour démarrer une réponse
-  void _startResponse(BuildContext context, DocumentSnapshot ticket) {
-    // Mettre à jour le statut du ticket à 'En cours'
-    FirebaseFirestore.instance.collection('tickets').doc(ticket.id).update({
-      'Etat': 'Résolu', // Mise à jour du statut
-    });
 
-    // Naviguer vers le formulaire de réponse
-    Navigator.pushNamed(
-      context,
-      '/response_form',
-      arguments: ticket,
-    );
+
+// Méthode pour mettre le ticket à "En cours" et naviguer vers le formulaire de réponse
+  void _setTicketInProgress(DocumentSnapshot ticket, BuildContext context) {
+    FirebaseFirestore.instance.collection('tickets').doc(ticket.id).update({
+      'Etat': 'En cours', // Mise à jour du statut à 'En cours'
+    }).then((_) {
+      Navigator.pushNamed(
+        context,
+        '/response_form',
+        arguments: ticket,
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur lors de la mise à jour du statut du ticket.'),
+        ),
+      );
+    });
   }
 
 
-  Widget _buildResponseList() {
+// Méthode pour démarrer une réponse
+  void _startResponse(BuildContext context, DocumentSnapshot ticket) {
+    // Mettre à jour le statut du ticket à 'Résolu' lors de la soumission
+    FirebaseFirestore.instance.collection('tickets').doc(ticket.id).update({
+      'Etat': 'Résolu', // Mise à jour du statut
+    }).then((_) {
+      Navigator.pop(context); // Ferme le formulaire après soumission
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Réponse soumise avec succès.')),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Erreur lors de la soumission de la réponse.')),
+      );
+    });
+  }
+
+
+
+Widget _buildResponseList() {
     return StreamBuilder<QuerySnapshot>(
       stream:
           FirebaseFirestore.instance.collection('reponseticket').snapshots(),
@@ -323,45 +523,12 @@ Widget _buildTicketList() {
             DateTime? date = (response['Date'] as Timestamp?)?.toDate();
 
             return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-              elevation: 2,
+             margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+              elevation: 3,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              child: ListTile(
-                title: Text(titre,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Description: $description'),
-                    Text('Catégorie: $categorie'),
-                    Text(
-                        'Date: ${date != null ? date.toString() : 'Date non définie'}'),
-                  ],
-                ),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'Modifier':
-                        _editResponse(context, responses[index]);
-                        break;
-                      case 'Supprimer':
-                        _deleteResponse(context, responses[index].id);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<String>>[
-                    if (response['formateurId'] == formateurId)
-                      const PopupMenuItem<String>(
-                        value: 'Modifier',
-                        child: Text('Modifier'),
-                      ),
-                    const PopupMenuItem<String>(
-                      value: 'Supprimer',
-                      child: Text('Supprimer'),
-                    ),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -371,6 +538,148 @@ Widget _buildTicketList() {
                     ),
                   );
                 },
+                borderRadius: BorderRadius.circular(15),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.question_answer_rounded,
+                                    color: Color.fromARGB(255, 20, 67, 168)),
+                                   const SizedBox(width: 8),
+                                const SizedBox(width: 5),
+                                Text(
+                                  titre,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Color.fromARGB(255, 20, 67, 168),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (categorie.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: categorie == 'Technique'
+                                    ? Colors.blue[100]
+                                    : categorie == 'Pédagogique'
+                                        ? Colors.green[100]
+                                        : Colors.orange[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    categorie == 'Technique'
+                                        ? Icons.build
+                                        : categorie == 'Pédagogique'
+                                            ? Icons.school
+                                            : Icons.category,
+                                    size: 16,
+                                    color: categorie == 'Technique'
+                                        ? Colors.blue[800]
+                                        : categorie == 'Pédagogique'
+                                            ? Colors.green[800]
+                                            : Colors.orange[800],
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    categorie,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: categorie == 'Technique'
+                                          ? Colors.blue[800]
+                                          : categorie == 'Pédagogique'
+                                              ? Colors.green[800]
+                                              : Colors.orange[800],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.description,
+                             color: Colors.black54, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Description:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 22.0),
+                        child: Text(
+                          description,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (date != null)
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today,
+                                color: Colors.black54, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Date: ${date.toLocal().toString().split(' ')[0]}',
+                              style: TextStyle(
+                                  color: Colors.grey[700], fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'Modifier':
+                                _editResponse(context, responses[index]);
+                                break;
+                              case 'Supprimer':
+                                _deleteResponse(context, responses[index].id);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => <PopupMenuEntry<String>>[
+                            if (response['formateurId'] == formateurId)
+                              const PopupMenuItem<String>(
+                                value: 'Modifier',
+                                child: Text('Modifier'),
+                              ),
+                            const PopupMenuItem<String>(
+                              value: 'Supprimer',
+                              child: Text('Supprimer'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           },
@@ -379,38 +688,10 @@ Widget _buildTicketList() {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      items: const [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: Colors.black), label: 'Home'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.chat, color: Colors.black), label: 'Chat'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.notifications, color: Colors.black),
-            label: 'Notifications'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Colors.black), label: 'Profil'),
-      ],
-      currentIndex: 0,
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            Navigator.pushNamed(context, '/formateur_home');
-            break;
-          case 1:
-            Navigator.pushNamed(context, '/chatform');
-            break;
-          case 2:
-            Navigator.pushNamed(context, '/notifications');
-            break;
-          case 3:
-            Navigator.pushNamed(context, '/profile');
-            break;
-        }
-      },
-    );
-  }
+
+
+
+  
 
   // void _startResponse(BuildContext context, DocumentSnapshot ticket) {
   //   Navigator.pushNamed(
@@ -485,4 +766,99 @@ void _editResponse(BuildContext context, DocumentSnapshot response) {
     );
   }
 
+  
+
+}
+class ResponseDetailPage extends StatelessWidget {
+  final Map<String, dynamic> responseData;
+
+  const ResponseDetailPage({Key? key, required this.responseData})
+      : super(key: key);
+
+  Future<void> _requestToContactFormateur(BuildContext context) async {
+    String apprenantId = FirebaseAuth.instance.currentUser!.uid;
+    String formateurId = responseData['formateurId'];
+    String ticketId = responseData['ticketId'];
+
+    // Envoyer la demande de contact au formateur, sans `groupId`
+    await FirebaseFirestore.instance.collection('invitations').add({
+      'apprenantId': apprenantId,
+      'formateurId': formateurId,
+      'ticketId': ticketId,
+      'status': 'pending', // Statut de la demande
+      'timestamp': Timestamp.now(),
+    });
+
+   
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Détails de la Réponse'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Titre: ${responseData['titre']}',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text('Description: ${responseData['description']}',
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            Text('Catégorie: ${responseData['categorie']}',
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            Text(
+                'Date: ${(responseData['Date'] as Timestamp?)?.toDate().toString() ?? 'Date non définie'}',
+                style: const TextStyle(fontSize: 16)),
+
+          ],
+        ),
+      ),
+    );
+  }
+}
+class TicketDetailPage extends StatelessWidget {
+  final Map<String, dynamic> ticketData;
+
+  const TicketDetailPage({Key? key, required this.ticketData})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Détails du Ticket'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Titre: ${ticketData['Titre']}',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text('Description: ${ticketData['Description']}',
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            Text('Catégorie: ${ticketData['categorie']}',
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            Text('Statut: ${ticketData['Etat']}',
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            Text(
+                'Date: ${(ticketData['Date'] as Timestamp?)?.toDate().toString() ?? 'Date non définie'}',
+                style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
 }

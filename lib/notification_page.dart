@@ -1,9 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gestionticket/apprenant_home_page.dart';
 
-class NotificationPage extends StatelessWidget {
+class NotificationPage extends StatefulWidget {
+  @override
+  _NotificationPageState createState() => _NotificationPageState();
+}
+
+class _NotificationPageState extends State<NotificationPage> {
   final String userId = FirebaseAuth.instance.currentUser!.uid;
+  int _currentIndex = 2; // Position initiale de l'onglet
+
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/apprenant_home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/chatapre');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/notifications');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +52,7 @@ class NotificationPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Notifications'),
-            backgroundColor: Colors.white,
+            backgroundColor: const Color.fromARGB(255, 8, 58, 223),
             elevation: 1,
             iconTheme: const IconThemeData(color: Colors.black),
           ),
@@ -120,6 +149,10 @@ class NotificationPage extends StatelessWidget {
               );
             },
           ),
+          bottomNavigationBar: CustomBottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: _onItemTapped,
+          ),
         );
       },
     );
@@ -163,7 +196,6 @@ class NotificationPage extends StatelessWidget {
         FirebaseFirestore.instance.collection('groupes_de_chat').doc();
 
     await groupRef.set({
-      
       'formateurId': formateurId,
       'nomGroupe': 'Groupe',
       'membres': [formateurId, apprenantId],
@@ -178,10 +210,12 @@ class NotificationPage extends StatelessWidget {
       'status': 'accepted',
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Groupe créé et apprenant ajouté avec succès')),
-    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Groupe créé et apprenant ajouté avec succès')),
+      );
+    }
   }
 
   void _showExistingGroups(BuildContext context, String invitationId,
@@ -229,12 +263,14 @@ class NotificationPage extends StatelessWidget {
                       'status': 'accepted'
                     });
 
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content:
-                              Text('Apprenant ajouté au groupe existant.')),
-                    );
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Apprenant ajouté au groupe existant.')),
+                      );
+                    }
                   },
                 );
               },

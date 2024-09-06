@@ -22,53 +22,38 @@ class _CreateChatGroupPageState extends State<CreateChatGroupPage> {
     _fetchApprenants();
   }
 
+  // Fonction pour récupérer les apprenants
   Future<void> _fetchApprenants() async {
-    QuerySnapshot responsesSnapshot = await FirebaseFirestore.instance
-        .collection('reponseticket')
-        .where('formateurId', isEqualTo: formateurId)
-        .get();
-
-    List<String> ticketIds =
-        responsesSnapshot.docs.map((doc) => doc['ticketId'] as String).toList();
-
-    List<String> ids = [];
-    List<String> names = [];
-
-    for (String ticketId in ticketIds) {
-      DocumentSnapshot ticketDoc = await FirebaseFirestore.instance
-          .collection('tickets')
-          .doc(ticketId)
+    try {
+      QuerySnapshot apprenantsSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'Apprenant')
           .get();
 
-      if (ticketDoc.exists) {
-        String apprenantId = ticketDoc['ApprenantId'];
+      List<String> ids = [];
+      List<String> names = [];
 
-        if (!ids.contains(apprenantId)) {
-          DocumentSnapshot apprenantDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(apprenantId)
-              .get();
-
-          if (apprenantDoc.exists && apprenantDoc['role'] == 'Apprenant') {
-            ids.add(apprenantId);
-            names.add(apprenantDoc['name']);
-          }
-        }
+      for (var doc in apprenantsSnapshot.docs) {
+        ids.add(doc.id);
+        names.add(doc['name'] ?? 'Nom inconnu');
       }
-    }
 
-    setState(() {
-      apprenantsIds = ids;
-      apprenantsNames = names;
-    });
+      setState(() {
+        apprenantsIds = ids;
+        apprenantsNames = names;
+      });
+    } catch (e) {
+      print('Erreur lors de la récupération des apprenants: $e');
+    }
   }
 
   Future<void> _createChatGroup() async {
     if (_groupNameController.text.isEmpty || selectedApprenants.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                'Veuillez entrer un nom de groupe et sélectionner des apprenants')),
+          content: Text(
+              'Veuillez entrer un nom de groupe et sélectionner des apprenants'),
+        ),
       );
       return;
     }

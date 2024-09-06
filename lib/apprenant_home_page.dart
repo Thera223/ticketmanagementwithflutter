@@ -15,6 +15,28 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
   String? _selectedCategory;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  int _currentIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/apprenant_home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/chatapre');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/notifications');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +44,7 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
       appBar: AppBar(
         title: const Text('Accueil Apprenant',
             style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 20, 67, 168),
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
@@ -37,7 +59,7 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
       body: Column(
         children: [
           _buildSearchBar(),
-          _buildStaticCategoryFilter(),
+          _buildCategoryFilter(),
           _buildToggleButtons(),
           Expanded(
             child: AnimatedSwitcher(
@@ -54,7 +76,10 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
         backgroundColor: const Color.fromARGB(255, 20, 67, 168),
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
+      ),
     );
   }
 
@@ -93,7 +118,7 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
     );
   }
 
-  Widget _buildStaticCategoryFilter() {
+  Widget _buildCategoryFilter() {
     const categories = ['Technique', 'Pédagogique', 'Autres'];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -122,6 +147,9 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
           backgroundColor: _selectedCategory == category
               ? const Color.fromARGB(255, 20, 67, 168)
               : Colors.grey.shade600,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
         child: Text(category, style: const TextStyle(color: Colors.white)),
       ),
@@ -134,35 +162,83 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ElevatedButton(
-            onPressed: () {
+          _buildAnimatedToggleButton(
+            isSelected: showTickets,
+            label: 'Tickets',
+            icon: Icons.assignment,
+            onTap: () {
               setState(() {
                 showTickets = true;
               });
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: showTickets
-                  ? const Color.fromARGB(255, 20, 67, 168)
-                  : Colors.grey,
-            ),
-            child: const Text('Tickets', style: TextStyle(color: Colors.white)),
           ),
           const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: () {
+          _buildAnimatedToggleButton(
+            isSelected: !showTickets,
+            label: 'Réponses',
+            icon: Icons.message,
+            onTap: () {
               setState(() {
                 showTickets = false;
               });
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: !showTickets
-                  ? const Color.fromARGB(255, 20, 67, 168)
-                  : Colors.grey,
-            ),
-            child:
-                const Text('Réponses', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedToggleButton({
+    required bool isSelected,
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: isSelected
+              ? const LinearGradient(
+                  colors: [Color.fromARGB(255, 20, 67, 168), Colors.blueAccent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : const LinearGradient(
+                  colors: [Colors.grey, Colors.grey],
+                ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, 4),
+                    blurRadius: 8,
+                  ),
+                ]
+              : [],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.black54,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black54,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -212,20 +288,11 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
 
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-              elevation: 2,
+              elevation: 3,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              child: ListTile(
-                title: Text(titre,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Description: $description'),
-                    Text('Catégorie: $categorie'),
-                    Text('Statut: $etat'),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -235,6 +302,75 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
                     ),
                   );
                 },
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.assignment,
+                                  color: Color.fromARGB(255, 20, 67, 168)),
+                              const SizedBox(width: 8),
+                              Text(
+                                titre,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Color.fromARGB(255, 20, 67, 168),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 4, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: etat.toLowerCase() == 'résolu'
+                                  ? Colors.green[100]
+                                  : etat.toLowerCase() == 'en cours'
+                                      ? Colors.yellow[100]
+                                      : Colors.red[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              etat,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: etat.toLowerCase() == 'résolu'
+                                    ? Colors.green[800]
+                                    : etat.toLowerCase() == 'en cours'
+                                        ? Colors.orange[800]
+                                        : Colors.red[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.description,
+                              color: Colors.black54, size: 18),
+                          const SizedBox(width: 6),
+                          Flexible(child: Text('Description: $description')),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.category,
+                              color: Colors.black54, size: 18),
+                          const SizedBox(width: 6),
+                          Text('Catégorie: $categorie'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           },
@@ -298,21 +434,11 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                  elevation: 2,
+                  elevation: 3,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    title: Text(titre,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Description: $description'),
-                        Text('Catégorie: $categorie'),
-                        Text(
-                            'Date: ${date != null ? date.toString() : 'Date non définie'}'),
-                      ],
-                    ),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -322,6 +448,78 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
                         ),
                       );
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.message,
+                                      color: Color.fromARGB(255, 20, 67, 168)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    titre,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Color.fromARGB(255, 20, 67, 168),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Pédagogique',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green[800],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.description,
+                                  color: Colors.black54, size: 18),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                  child: Text('Description: $description')),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.category,
+                                  color: Colors.black54, size: 18),
+                              const SizedBox(width: 6),
+                              Text('Catégorie: $categorie'),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.date_range,
+                                  color: Colors.black54, size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                  'Date: ${date != null ? date.toString() : 'Date non définie'}'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
@@ -339,40 +537,131 @@ class _ApprenantHomePageState extends State<ApprenantHomePage> {
         .get();
     return ticketDocs.docs.map((doc) => doc.id).toList();
   }
+}
 
-  Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      items: const [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: Colors.black), label: 'Home'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.chat, color: Colors.black), label: 'Chat'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.notifications, color: Colors.black),
-            label: 'Notifications'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Colors.black), label: 'Profil'),
-      ],
-      currentIndex: 0,
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            Navigator.pushNamed(context, '/apprenant_home');
-            break;
-          case 1:
-            Navigator.pushNamed(context, '/chatapre');
-            break;
-          case 2:
-            Navigator.pushNamed(context, '/notifications');
-            break;
-          case 3:
-            Navigator.pushNamed(context, '/profile');
-            break;
-        }
+class CustomBottomNavigationBar extends StatefulWidget {
+  final int currentIndex;
+  final Function(int) onTap;
+
+  const CustomBottomNavigationBar({
+    Key? key,
+    required this.currentIndex,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  _CustomBottomNavigationBarState createState() =>
+      _CustomBottomNavigationBarState();
+}
+
+class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 5,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home, "Home", 0),
+            _buildNavItem(Icons.chat, "Chat", 1),
+            _buildNavItem(Icons.notifications, "Notifications", 2),
+            _buildNavItem(Icons.person, "Profil", 3),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    final bool isSelected = widget.currentIndex == index;
+    return GestureDetector(
+      onTap: () {
+        widget.onTap(index);
+        _controller.forward(from: 0);
       },
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: isSelected ? 1.2 : 1.0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color.fromARGB(255, 20, 67, 168)
+                        : Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: Colors.blue.withOpacity(0.3),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 5),
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Icon(icon,
+                      color: isSelected ? Colors.white : Colors.black54),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? const Color.fromARGB(255, 20, 67, 168)
+                        : Colors.black54,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
+
+
+
 
 class TicketDetailPage extends StatelessWidget {
   final Map<String, dynamic> ticketData;

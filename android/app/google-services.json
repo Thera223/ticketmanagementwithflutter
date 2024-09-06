@@ -12,7 +12,12 @@
           "package_name": "com.example.gestionticket"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "714405681197-psddiu19os9dm547na2vd1b08t75l8en.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBoDfp5GVJdIDCZNS4B1WAJt3C_0r4xC5w"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "714405681197-psddiu19os9dm547na2vd1b08t75l8en.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
